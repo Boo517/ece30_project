@@ -70,6 +70,31 @@ GetNodeWithVal:
 	//     x2: The address of (pointer to) the node with the given value(x1).
 	
     // INSERT YOUR CODE HERE
+	
+	// build stack
+	SUBI sp, [sp, #16] // two 8-byte chunks, for old fp and lr
+	STUR fp, [sp, #0] // store old fp at top of stack
+	STUR lr, [sp, #8] // store old lr below old fp, at bottom of stack
+	ADDI fp, sp, #8
+	
+	// set return value to default (cur=x0) for ease of program flow
+	MOV x2, x0
+	
+	// check cur==NULL, if so branch to return, w/ default x2=cur 
+	CBZ
+	
+	// check cur->data==NULL, if so branch to return, w/ default x2=cur 
+	LDUR x9, [x0, #0] // save cur->data into a temp register (x9) for branch condition
+	
+	GetNodeWithValReturn:
+	// retrieve old fp, lr
+	LDUR fp, [sp, #0] 
+	LDUR lr, [sp, #8]
+	
+	// deallocate stack (16 bytes for old fp, lr)
+	ADDI sp, sp, #16 
+	
+	// return to caller line
 	br lr
 
     
