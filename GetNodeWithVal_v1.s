@@ -23,9 +23,10 @@
 
     lda x0, list1
     
-	ADDI x9, x9, #96
-	// call getNodeWithVal on x0 with val=x9(96)
-    bl printList         // print output
+	ADDI x1, x1, #96  // set input x1 to 96
+	bl getNodeWithVal // call getNodeWithVal on x0 with val=x1(96)
+	LDUR x9, [x2, #8] // get value of node at address x2 to check if it's 96 (found correct node), and store it in temp register x9
+    putint x9 		  // print output.value
 
 	stop
 
@@ -68,7 +69,7 @@ GetNodeWithVal:
 	//     x0: The address of the node (corresponding to cur) of the input list.
 	//     x1: The value (corresponding to val) of the node it’s looking for.
  	// output:
-	//     x2: The address of (pointer to) the node with the given value(x1).
+	//     x2: The address of (pointer to) the node with the given value(=x1).
 	
     // INSERT YOUR CODE HERE
 	
