@@ -23,9 +23,12 @@
 
     lda x0, list1
     
-	ADDI x1, x1, #96  // set input x1 to 96
-	bl getNodeWithVal // call getNodeWithVal on x0 with val=x1(96)
-	LDUR x9, [x2, #8] // get value of node at address x2 to check if it's 96 (found correct node), and store it in temp register x9
+	ADDI x1, xzr, #12 // set input x1 to a test value (in list)
+	bl getNodeWithVal // call getNodeWithVal on x0 with val=x1
+	LDUR x9, [x2, #0] // get value of node at address x2 to check if it's x1 (found correct node), and store it in temp register x9
+	putint x2         // print address of node with value
+	addi x10, xzr, #10  // \n new line
+	putchar x10
     putint x9 		  // print output.value
 
 	stop
@@ -85,9 +88,10 @@ GetNodeWithVal:
 	// check cur==NULL, if so branch to return, w/ default x2=cur 
 	CBZ x0, GetNodeWithValReturn
 	
-	// check cur->data==NULL, if so branch to return, w/ default x2=cur 
+	// check cur->data==val, if so branch to return, w/ default x2=cur 
 	LDUR x9, [x0, #0] // save cur->data into a temp register (x9) for branch condition
-	CBZ x9, GetNodeWithValReturn
+	CMP x9, x1
+	b.eq GetNodeWithValReturn
 	
 	// if neither condition true, make recursive call
 	// set new input for cur, no need to do anything for val as it remains the same
