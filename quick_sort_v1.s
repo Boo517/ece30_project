@@ -22,10 +22,9 @@
 	putchar x0
 
     lda x0, list1
-    
-	ADDI x9, x9, #96
-	// call getNodeWithVal on x0 with val=x9(96)
-    bl printList         // print output
+    bl QuickSortWrapper  // return sorted list in x1
+    add x0, x1, XZR
+    bl printList         // entirely sorted
 
 	stop
 
@@ -71,37 +70,6 @@ GetNodeWithVal:
 	//     x2: The address of (pointer to) the node with the given value(x1).
 	
     // INSERT YOUR CODE HERE
-	
-	// build stack
-	SUBI sp, [sp, #16] // two 8-byte chunks, for old fp and lr
-	STUR fp, [sp, #0] // store old fp at top of stack
-	STUR lr, [sp, #8] // store old lr below old fp, at bottom of stack
-	ADDI fp, sp, #8
-	
-	// set return value to default (cur=x0) for ease of program flow
-	MOV x2, x0
-	
-	// check cur==NULL, if so branch to return, w/ default x2=cur 
-	CBZ x0, GetNodeWithValReturn
-	
-	// check cur->data==NULL, if so branch to return, w/ default x2=cur 
-	LDUR x9, [x0, #0] // save cur->data into a temp register (x9) for branch condition
-	CBZ x9, GetNodeWithValReturn
-	
-	// if neither condition true, make recursive call
-	// set new input for cur, no need to do anything for val as it remains the same
-	LDUR x0, [x0, #8] // cur = cur->next
-	bl GetNodeWithVal
-	
-	GetNodeWithValReturn:
-	// retrieve old fp, lr
-	LDUR fp, [sp, #0] 
-	LDUR lr, [sp, #8]
-	
-	// deallocate stack (16 bytes for old fp, lr)
-	ADDI sp, sp, #16 
-	
-	// return to caller line
 	br lr
 
     
@@ -132,9 +100,89 @@ QuickSort:
 	//     x1: The address of the last node (corresponding to last) of the list.
  	// output:
 	//     x2: The address of the first node of the list.
+	// saved registers:
+	//		x19: first, the address of the list's head node
+	//		x20: last, the address of the list's tail node
+	//		x21: pivot, the return value of partition
 
 	// INSERT YOUR CODE HERE
+	// create stack
+	SUBI sp, sp, #40 // move sp to allocate stack space
+	STUR fp, [sp, #0] // store old fp on top of stack
+	STUR lr, [sp, #8] // store old lr below old fp
+	ADDI fp, sp, #32 // move old fp to bottom of stack
+	
+	// save saved registers onto stack
+	STUR x19, [fp, #0] // save caller's first onto stack
+	STUR x20, [fp, #8] // save caller's last onto stack
+	STUR x21, [fp, #16] // save caller's pivot onto stack 
+	
+	// set new values for first and last based on input
+	MOV x19, x0 // 
+	MOV x20, x1
+	
+	// base case comparison (if first == last, then branch to QuickSortReturn)\
+	SUBS xzr, x19, x20 // compare first and last
+	B.EQ QuickSortReturn // branch if first == last
+	
+	// call partition(first, last->data)
+	// x0 is already address of first node 
+	LDUR x1, [x20, #0]// set x1 = last->data
+	bl Partition
+	
+	// set new value for pivot based on return value of partition call
+	MOV x21, x2
+	
+	// if (pivot!=NULL) && pivot->next != NULL, call quicksort on RHS of pivot
+	// achieve this by skipping branch to QuickSortRHS if either pivot===NULL or pivot->next == NULL
+	cbz x21, SkipQuickSortRHS // pivot == NULL
+	LDUR x9, [x21, #8] // save pivot->next into temp register x9
+	cbz x9, SkipQuickSortRHS // pivot->next == NULL
+	bl QuickSortRHS
+	SkipQuickSortRHS:
+	
+	// if (pivot!=NULL) && first != pivot, call quicksort on LHS of pivot
+	// achieve this by skipping branch to QuickSortRHS if either pivot===NULL or first-pivot == 0
+	cbz x21, SkipQuickSortLHS // pivot == NULL
+	SUBS XZR, x19, x21 // compare first and pivot
+	b.eq SkipQuickSortLHS // first-pivot == 0
+	bl QuickSortLHS
+	SkipQuickSortLHS:
+	
+	QuickSortReturn:
+	// set output (x2) to first (x19)
+	MOV x2, x19
+	
+	// restore saved registers 
+	LDUR x19, [fp, #0] // retrieve caller's first from stack
+	LDUR x20, [fp, #8] // retrieve caller's last from stack
+	LDUR x21, [fp, #16] // retrieve caller's pivot from stack
+	
+	// restore old fp, lr 
+	LDUR fp, [sp, #0] // restore old fp from top of stack
+	LDUR lr, [sp, #8] // restore old lr 
+	
+	// deallocate stack
+	ADDI sp, sp, #40 // move sp back to deallocate stack space
+	
+	// return to caller frame
 	br lr 
+	
+	QuickSortRHS: // QuickSort(pivot->next, last)
+		// set x0 to pivot->next
+		LDUR x0, [x21, #8]
+		// set x1 to last
+		MOV x1, x20
+		bl QuickSort
+		br lr
+	
+	QuickSortLHS: // QuickSort(first, pivot)
+		// set x0 to first
+		MOV x0, x19
+		// set x1 to pivot
+		MOV x1, x21
+		bl QuickSort
+		br lr
 
 ////////////////////////
 //                    //
