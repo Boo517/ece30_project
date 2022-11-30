@@ -196,6 +196,12 @@ QuickSortWrapper:
 	//     x1: The address of the first node of the list.
 	
     // INSERT YOUR CODE HERE
+	// call GetLastNode(first)
+	bl GetLastNode // x0 is already the address of the first node
+	// call QuickSort
+	bl QuickSort// x0 is already address of first node and x1 is already address of last node
+	// set output (x1) to outout of QuickSort (x2)
+	MOV x1, x2
 	br lr 
     
 ////////////////////////
