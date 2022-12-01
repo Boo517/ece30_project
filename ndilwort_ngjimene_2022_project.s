@@ -4,8 +4,8 @@
 //                    //
 ////////////////////////
 
-// Partner1: Noah Dilworth, A15863718
-// Partner2: Noe Jimenez, A16281532
+// Partner1: (your name here), (Student ID here)
+// Partner2: (your name here), (Student ID here)
 
 ////////////////////////
 //                    //
@@ -22,9 +22,9 @@
 	addi x19, xzr, #10  // \n new line
 	putchar x19
 
-    MOV x0, x22 // set input for QuickSortWrapper to address of list head
+    MOV x0, x22
     bl QuickSortWrapper  // return sorted list in x1
-	MOV x0, x22	// // set input for printList to address of list head
+	MOV x0, x22
     bl printList
 
 	stop
@@ -41,10 +41,10 @@ SwapNodeValue:
     //     x1: The address of (pointer to) another node (corresponding to n2) on the linked list.
     
 	// INSERT YOUR CODE HERE
-	LDUR	X9, [X0, #0]	// load value at first address
-	LDUR	X10, [X1, #0]	// load value at second address
-	STUR	X10, [X0, #0]	// store value of second address into first 
-	STUR	X9, [X1, #0]	// store value at first address into second
+	LDUR	X9, [X0, #0]
+	LDUR	X10, [X1, #0]
+	STUR	X10, [X0, #0]
+	STUR	X9, [X1, #0]
 	br lr 
 
     
@@ -61,14 +61,14 @@ GetLastNode:
 	
 	// INSERT YOUR CODE HERE
 
-		CBZ	X0, basecase		// Check if first address is NULL
-		LDUR X9, [X0, #8]	// Load next address into temp 
-		CBZ	X9, basecase		// Check to see if next address is NULL 
-		MOV	X0, X9		// set x0 to current node's next
-		B	GetLastNode	// Return to top of getlast and repeat 	
+		CBZ	X0, basecase		//Check if first address is NULL
+		LDUR X9, [X0, #8]	//Load next address into temp 
+		CBZ	X9, basecase		//Check to see if next address is NULL 
+		MOV	X0, X9
+		B	GetLastNode	//Return to top of getlast and repeat the whole process until an END is reached	
 
 	basecase:
-		ADD	X1, XZR, X0	// return address of last node
+		ADD	X1, XZR, X0	//Add the address of the last node to X1
 		br lr
 
 ////////////////////////
@@ -89,7 +89,7 @@ GetNodeWithVal:
 	SUBI sp, sp, #16 // two 8-byte chunks, for old fp and lr
 	STUR fp, [sp, #0] // store old fp at top of stack
 	STUR lr, [sp, #8] // store old lr below old fp, at bottom of stack
-	ADDI fp, sp, #8 // assign fp to bottom of stack
+	ADDI fp, sp, #8
 	
 	// set return value to default (cur=x0) for ease of program flow
 	MOV x2, x0
@@ -99,13 +99,13 @@ GetNodeWithVal:
 	
 	// check cur->data==val, if so branch to return, w/ default x2=cur 
 	LDUR x9, [x0, #0] // save cur->data into a temp register (x9) for branch condition
-	CMP x9, x1 // compare cur->data (x9) and val (x1)
-	b.eq GetNodeWithValReturn // branch to return if condition holds
+	CMP x9, x1
+	b.eq GetNodeWithValReturn
 	
 	// if neither condition true, make recursive call
 	// set new input for cur, no need to do anything for val as it remains the same
 	LDUR x0, [x0, #8] // cur = cur->next
-	bl GetNodeWithVal // recursive call on rest of list
+	bl GetNodeWithVal
 	
 	GetNodeWithValReturn:
 	// retrieve old fp, lr
@@ -139,8 +139,7 @@ Partition:
 	STUR lr, [sp, #8] //store old link register below old frame pointer
 	ADDI fp, sp, #40 // set new frame pointer to bottom of stack
 
-	// initialize various addresses in caller-saved temp registers, needed for partition
-	// the procedures SaveTemp and LoadTemp handle saving and retrieving them from the stack
+	// initialize various pointers
 	//	x9: cur (the address of the node whose val we compare to lastVal)
 	//	x10: last (address of the node which contains lastVal)
 	//	x11: pivot (what we're gonna return eventually)	
@@ -149,22 +148,21 @@ Partition:
 	MOV x12, x0 // set first to input arg
 	MOV x11, x12 // pivot = first
 	MOV x9, x12 // cur = first
-	
 	// set up stack to call getNodeWithVal
 	// x0 is already first
 	// x1 is already lastVal
 	bl SaveTemp // save temp register vals
-	bl GetNodeWithVal // call GetNodeWithVal to get the address of lastVal, to be saved in x10 (last)
+	bl GetNodeWithVal // x2 = getNodeWithVal(first, lastVal)
 	bl LoadTemp // load temp register vals
 	MOV x10, x2 // set x10 (last) to return value of getNodeWithValue
 	
 	PartitionLoop:
 		// end loop if cur is NULL
-		CBZ x9, PartitionLoopEnd // end loop
+		CBZ x9, PartitionLoopEnd 
 		
 		// end loop if cur == last
 		SUBS xzr, x9, x10 // compare cur and last 
-		B.EQ PartitionLoopEnd // end loop
+		B.EQ PartitionLoopEnd 
 		
 		// if cur->data < last->data, then swap values of first and cur and update pivot
 		LDUR x13, [x9, #0]  // get cur->data for if
@@ -204,17 +202,17 @@ Partition:
 
 	// save temp register values to local frame for function calls
 	SaveTemp:
-		STUR x9, [fp, #0] // cur
-		STUR x10, [fp, #-8] // last
-		STUR x11, [fp, #-16] // pivot
-		STUR x12, [fp, #-24] // first
+		STUR x9, [fp, #0]
+		STUR x10, [fp, #-8]
+		STUR x11, [fp, #-16]
+		STUR x12, [fp, #-24]
 		br lr
 	// load temp registers from local frame for upon return from function call
 	LoadTemp:
-		LDUR x9, [fp, #0] // cur
-		LDUR x10, [fp, #-8] // last
-		LDUR x11, [fp, #-16] // pivot
-		LDUR x12, [fp, #-24] // first
+		LDUR x9, [fp, #0]
+		LDUR x10, [fp, #-8]
+		LDUR x11, [fp, #-16]
+		LDUR x12, [fp, #-24]
 		br lr
     
 
@@ -307,10 +305,8 @@ QuickSort:
 		// restore old fp, lr
 		LDUR fp, [sp, #0] // restore old fp from top of stack
 		LDUR lr, [sp, #8] // restore old lr
-		
 		// deallocate stack		
 		ADDI sp, sp, #16
-		
 		br lr // return to quicksort main
 	
 	QuickSortLHS: // QuickSort(first, pivot)
@@ -329,10 +325,8 @@ QuickSort:
 		// restore old fp, lr
 		LDUR fp, [sp, #0] // restore old fp from top of stack
 		LDUR lr, [sp, #8] // restore old lr
-		
 		// deallocate stack		
 		ADDI sp, sp, #16
-		
 		br lr // return to quicksort main
 
 ////////////////////////
@@ -347,27 +341,19 @@ QuickSortWrapper:
 	//     x1: The address of the first node of the list.
 	
     // INSERT YOUR CODE HERE
-	// set up stack
-	SUBI sp, sp, #32 // 
-	STUR fp, [sp, #0] // store old fp at top of stack
-	STUR lr, [sp, #8] // store old lr below old fp
-	STUR x0, [sp, #16] // store address of first node, needed for quicksort
-	
-	// call GetLastNode(first) to get the last node of the list to call quicksort with
+	// call GetLastNode(first)
+	SUBI sp, sp, #32
+	STUR fp, [sp, #0] 
+	STUR lr, [sp, #8]
+	STUR x0, [sp, #16]
 	bl GetLastNode // x0 is already the address of the first node
-	
 	// call QuickSort
-	LDUR x0, [sp, #16] // set x0 to address of first node for quicksort
-	bl QuickSort // x1 is already address of last node, as it was the return value of GetLastNode
-	
-	// set output (x1) to output of QuickSort (x2)
+	LDUR x0, [sp, #16]
+	bl QuickSort // x0 is already address of first node and x1 is already address of last node
+	// set output (x1) to outout of QuickSort (x2)
 	MOV x1, x2
-	
-	// restore old fp, lr
 	LDUR fp, [sp, #0] 
 	LDUR lr, [sp, #8]
-	
-	// deallocate stack
 	ADDI sp, sp, #32
 	br lr 
     
