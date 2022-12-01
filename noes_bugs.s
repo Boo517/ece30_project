@@ -15,19 +15,16 @@
 
     // You can modify main function to test your own test cases.
 	// The folloiwng prints unsorted list, call sort function, and print the sorted list again.
-    lda x20, list1	// load list into x20
-	MOV x0, x20 	// set x0 to addr of list head to call printList on it
-    bl printList	// display original list
+    lda x0, list1      // display original list
+    bl printList
 
 	addi x19, xzr, #10  // \n new line
 	putchar x19
-    
-	ADDI x1, xzr, #12 // set input x1 to a test value (in list)
-	bl getNodeWithVal // call getNodeWithVal on x0 with val=x1
-	LDUR x9, [x2, #0] // get value of node at address x2 to check if it's x1 (found correct node), and store it in temp register x9
-	putint x2         // print address of node with value
-	putchar x19		  // \n new line
-    putint x9 		  // print output.value
+
+    bl GetLastNode  // return sorted list in x1
+    LDUR x18, [x1, #0]
+    putint x1
+    putint x18
 
 	stop
 
@@ -43,6 +40,10 @@ SwapNodeValue:
     //     x1: The address of (pointer to) another node (corresponding to n2) on the linked list.
     
 	// INSERT YOUR CODE HERE
+	LDUR	X9, [X0, #0]
+	LDUR	X10, [X1, #0]
+	STUR	X10, [X0, #0]
+	STUR	X9, [X1, #0]
 	br lr 
     
 ////////////////////////
@@ -56,8 +57,16 @@ GetLastNode:
 	// output:
 	//     x1: The address of the last node of the linked list.
 	
-	// INSERT YOUR CODE HERE
-	br lr
+	// INSERT YOUR CODE HER
+		CBZ	X0, GetLastNodeEnd		// Check if first address is NULL
+		LDUR	X9, [X0, #8]	// Load next address into temp 
+		CBZ 	X9, GetLastNodeEnd		// Check to see if next address is NULL 
+		LDUR	X0, [X0, #8]
+		B 	GetLastNode		//Return to top of getlast and repeat the whole process until an END is reached	
+
+	GetLastNodeEnd:
+		MOV	X1, X0	//Add the address of the last node to X1
+		br lr
 
 
 ////////////////////////
@@ -70,41 +79,9 @@ GetNodeWithVal:
 	//     x0: The address of the node (corresponding to cur) of the input list.
 	//     x1: The value (corresponding to val) of the node it’s looking for.
  	// output:
-	//     x2: The address of (pointer to) the node with the given value(=x1).
+	//     x2: The address of (pointer to) the node with the given value(x1).
 	
     // INSERT YOUR CODE HERE
-	
-	// build stack
-	SUBI sp, [sp, #16] // two 8-byte chunks, for old fp and lr
-	STUR fp, [sp, #0] // store old fp at top of stack
-	STUR lr, [sp, #8] // store old lr below old fp, at bottom of stack
-	ADDI fp, sp, #8
-	
-	// set return value to default (cur=x0) for ease of program flow
-	MOV x2, x0
-	
-	// check cur==NULL, if so branch to return, w/ default x2=cur 
-	CBZ x0, GetNodeWithValReturn
-	
-	// check cur->data==val, if so branch to return, w/ default x2=cur 
-	LDUR x9, [x0, #0] // save cur->data into a temp register (x9) for branch condition
-	CMP x9, x1
-	b.eq GetNodeWithValReturn
-	
-	// if neither condition true, make recursive call
-	// set new input for cur, no need to do anything for val as it remains the same
-	LDUR x0, [x0, #8] // cur = cur->next
-	bl GetNodeWithVal
-	
-	GetNodeWithValReturn:
-	// retrieve old fp, lr
-	LDUR fp, [sp, #0] 
-	LDUR lr, [sp, #8]
-	
-	// deallocate stack (16 bytes for old fp, lr)
-	ADDI sp, sp, #16 
-	
-	// return to caller line
 	br lr
 
     
@@ -113,15 +90,7 @@ GetNodeWithVal:
 //     Partition      //
 //                    //
 ////////////////////////
-Partition:
-	// input:
-	//     x0: The address of the first node (corresponding to first) of the linked list.
-	//     x1: The value (corresponding to lastVal) of the last node of the linked list.
- 	// output:
-	//     x2: The address of the first node on the left of the node with the given last node value.
-
-	// INSERT YOUR CODE HERE
-	br lr
+		br lr
     
 
 ////////////////////////
